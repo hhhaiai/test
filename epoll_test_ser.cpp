@@ -53,10 +53,10 @@ int main(int argc,char **argv){
 	int flags = fcntl(ser_fd,F_GETFL,0);
 	fcntl(ser_fd,F_SETFL,flags | O_NONBLOCK);
 
-	if((ep_fd = epoll_create(1024)) < 0){
-		cout<<"error"<<endl;
-		return(-1);
-	}
+	//if((ep_fd = epoll_create(1024)) < 0){
+	//	cout<<"error"<<endl;
+	//	return(-1);
+	//}
 	//to be continue;
 
 	close(ser_fd);
