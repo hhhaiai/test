@@ -51,6 +51,15 @@ int Accept(int ser_fd,struct sockaddr *cli_addr,socklen_t *sock_len){
 	return cli_fd;
 }
 
+int Close(int fd){
+	int ret = close(fd);
+	if(ret < 0){
+		cout<<"close error"<<endl;
+		exit(-1);
+	}
+	return ret;
+}
+
 int Epoll_create(int size){
 	int fd = epoll_create(size);
 	if(fd < 0){
@@ -79,7 +88,7 @@ int Epoll_wait(int ep_fd,struct epoll_event *events,int epoll_size,int timeout){
 }
 
 int main(int argc,char **argv){
-	int ser_fd,cli_fd,ep_fd,event_num;
+	int ser_fd,cli_fd,ep_fd,event_num,read_num;
 	char addr[20],buf[10];
 	struct sockaddr_in ser_addr,cli_addr;
 	struct epoll_event event,events[EPOLL_SIZE];
@@ -106,6 +115,7 @@ int main(int argc,char **argv){
 		event_num = Epoll_wait(ep_fd,events,EPOLL_SIZE,-1);
 		
 		for(int i = 0;i < event_num;i++){
+			//ser_fd
 			if(events[i].data.fd == ser_fd){
 				cli_fd = Accept(events[i].data.fd,(struct sockaddr *) &cli_addr,&sock_len);
 	
@@ -118,17 +128,29 @@ int main(int argc,char **argv){
 				
 				inet_ntop(AF_INET,&cli_addr.sin_addr,addr,sizeof(addr));
 				cout<<addr<<" connected"<<endl;
+			//cli_fd
 			}else{
-				while(read(events[i].data.fd,buf,10) > 0){
-					cout<<buf<<endl;
-					//clear buf[]
+				//read
+				for(;;){
+					read_num = read(events[i].data.fd,buf,10);
+					cout<<read_num<<endl;
+					if(read_num > 0){
+						cout<<buf<<endl;
+						//clear buf[]
+					}else if(read_num == 0){
+						Epoll_ctl(ep_fd,EPOLL_CTL_DEL,events[i].data.fd,NULL);
+						Close(events[i].data.fd);
+						cout<<"diconnected"<<endl;
+						break;
+					}else{
+						break;
+					}
 				}
-				//when to close client and EPOLL_CTL_DEL
 			}
 		}
 	}
 	
-	close(ep_fd);
-	close(ser_fd);
+	Close(ep_fd);
+	Close(ser_fd);
 	return(0);
 }
