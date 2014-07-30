@@ -13,7 +13,7 @@ using namespace std;
 int Socket(int af,int type,int protocol){
 	int fd =socket(af,type,protocol);
 	if(fd < 0){
-		cout<<"error"<<endl;
+		cout<<"socket error"<<endl;
 		exit(-1);
 	}
 	return fd;
@@ -22,7 +22,7 @@ int Socket(int af,int type,int protocol){
 int Bind(int fd,struct sockaddr *addr,int len){
 	int ret = bind(fd,addr,len);
 	if(ret < 0){
-		cout<<"error"<<endl;
+		cout<<"bind error"<<endl;
 		exit(-1);
 	}
 	return ret;
@@ -31,7 +31,16 @@ int Bind(int fd,struct sockaddr *addr,int len){
 int Listen(int fd,int size){
 	int ret = listen(fd,1024);
 	if(ret < 0){
-		cout<<"error"<<endl;
+		cout<<"listen error"<<endl;
+		exit(-1);
+	}
+	return ret;
+}
+
+int Epoll_create(int size){
+	int ret = epoll_create(size);
+	if(ret < 0){
+		cout<<"epoll_create error"<<endl;
 		exit(-1);
 	}
 	return ret;
@@ -53,11 +62,7 @@ int main(int argc,char **argv){
 	int flags = fcntl(ser_fd,F_GETFL,0);
 	fcntl(ser_fd,F_SETFL,flags | O_NONBLOCK);
 
-	//if((ep_fd = epoll_create(1024)) < 0){
-	//	cout<<"error"<<endl;
-	//	return(-1);
-	//}
-	//to be continue;
+	ep_fd = Epoll_create(1024);
 
 	close(ser_fd);
 	return(0);
