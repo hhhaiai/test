@@ -11,6 +11,7 @@
 
 #define EPOLL_SIZE 1024
 #define LISTEN_SIZE 1024
+#define BUFF_SIZE 10
 #define PORT 12345
 
 using namespace std;
@@ -89,7 +90,7 @@ int Epoll_wait(int ep_fd,struct epoll_event *events,int epoll_size,int timeout){
 
 int main(int argc,char **argv){
 	int ser_fd,cli_fd,ep_fd,event_num,read_num;
-	char addr[20],buf[10];
+	char addr[20],buf[BUFF_SIZE];
 	struct sockaddr_in ser_addr,cli_addr;
 	struct epoll_event event,events[EPOLL_SIZE];
 	socklen_t sock_len = sizeof(struct sockaddr);
@@ -127,20 +128,24 @@ int main(int argc,char **argv){
 				Epoll_ctl(ep_fd,EPOLL_CTL_ADD,cli_fd,&event);
 				
 				inet_ntop(AF_INET,&cli_addr.sin_addr,addr,sizeof(addr));
-				cout<<addr<<" connected"<<endl;
+				cout<<addr<<":connected"<<endl;
 			//cli_fd
 			}else{
 				//read
 				for(;;){
-					read_num = read(events[i].data.fd,buf,10);
-					cout<<read_num<<endl;
+					read_num = read(events[i].data.fd,buf,BUFF_SIZE);
+			
+					getpeername(events[i].data.fd,(struct sockaddr *) &cli_addr,&sock_len);
+					inet_ntop(AF_INET,&cli_addr.sin_addr,addr,sizeof(addr));
+	
 					if(read_num > 0){
-						cout<<buf<<endl;
+						cout<<addr<<":"<<buf<<endl;
 						//clear buf[]
+						memset(buf,0,BUFF_SIZE);
 					}else if(read_num == 0){
 						Epoll_ctl(ep_fd,EPOLL_CTL_DEL,events[i].data.fd,NULL);
 						Close(events[i].data.fd);
-						cout<<"diconnected"<<endl;
+						cout<<addr<<":diconnected"<<endl;
 						break;
 					}else{
 						break;
