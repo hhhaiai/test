@@ -2,8 +2,11 @@ test
 ====
 epoll test
 
+SERVER:
 g++ -o epoll_test_ser epoll_test_ser.cpp
-g++ -o sock_cli sock_cli.cpp
-
 ./epoll_test_ser
-./sock_cli
+
+CLIENT:
+g++ -o test_cli test_cli.cpp
+./test_cli
+//input something to server
