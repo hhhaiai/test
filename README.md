@@ -1,6 +1,5 @@
 test
 ========
-epoll test
 
 SERVER:
 
